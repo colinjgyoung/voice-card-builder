@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Testing phase: keep out of search results. Remove this line when the tool is announced. -->
+<meta name="robots" content="noindex, nofollow">
+<!-- Privacy rule enforced by the browser: the page may not load or send anything over the network. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Voice Card Builder</title>
+<style>
+/* Layout idea: one narrow working column, a five-stop rail on top, and one physical object: the ruled index card. */
+:root{
+  --bg:#ECEFF3; --surface:#FFFFFF; --soft:#F4F6F9; --ink:#16233B; --muted:#55627A; --line:#D2D9E3;
+  --accent:#2443A6; --accent-ink:#FFFFFF; --mark:#FFE27A; --mark2:#BDE9D8; --rule:#C9D6EE; --redline:#D9756B;
+  --display: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --body: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono: ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1727; --surface:#182238; --soft:#131C30; --ink:#E8ECF4; --muted:#9DA9C0; --line:#2D3B57;
+    --accent:#9DB7FF; --accent-ink:#0F1727; --mark:#6A5A14; --mark2:#1F5A4A; --rule:#2B3A5C; --redline:#B8635A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1727; --surface:#182238; --soft:#131C30; --ink:#E8ECF4; --muted:#9DA9C0; --line:#2D3B57;
+  --accent:#9DB7FF; --accent-ink:#0F1727; --mark:#6A5A14; --mark2:#1F5A4A; --rule:#2B3A5C; --redline:#B8635A;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:860px;margin:0 auto;padding:20px 18px 64px;display:flex;flex-direction:column;gap:22px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-family:var(--display);font-style:italic;font-size:1.25rem;letter-spacing:.01em}
+.pill{font-size:.8rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+nav.rail{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+nav.rail button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-top:3px solid var(--line);color:var(--muted);font-size:.82rem;min-width:0}
+nav.rail button b{font-family:var(--mono);font-weight:600;font-size:.75rem}
+nav.rail button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav.rail button.done{border-top-color:var(--muted)}
+nav.rail button.on{border-top-color:var(--accent);color:var(--ink)}
+nav.rail button:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--display);font-weight:500;font-size:clamp(1.9rem,5vw,2.7rem);line-height:1.1;margin:0;text-wrap:balance}
+h1 em{background:linear-gradient(transparent 58%,var(--mark) 58%);font-style:italic;padding:0 .1em}
+h2{font-family:var(--display);font-weight:500;font-size:1.6rem;line-height:1.2;margin:0;text-wrap:balance}
+h3{font-size:1rem;margin:0}
+p{margin:0;max-width:66ch}
+.lede{font-size:1.08rem;color:var(--muted)}
+.muted{color:var(--muted)} .small{font-size:.88rem}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:26px;align-items:center}
+@media (max-width:700px){.hero{grid-template-columns:1fr}}
+.promise{border-left:3px solid var(--accent);padding:4px 0 4px 14px;color:var(--ink)}
+label.f{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.95rem}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text],textarea{font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+textarea{min-height:110px;resize:vertical;line-height:1.5}
+textarea.tall{min-height:170px}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--soft);font-size:.92rem;cursor:pointer}
+.checks input{accent-color:var(--accent)}
+.checks label:has(input:checked){border-color:var(--accent);background:var(--surface)}
+button.btn{font:inherit;font-weight:600;cursor:pointer;border-radius:8px;padding:10px 16px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+button.btn.ghost{background:transparent;color:var(--accent)}
+button.btn.quiet{border-color:var(--line);background:var(--surface);color:var(--ink);font-weight:500}
+button.btn.sm{padding:6px 12px;font-size:.9rem}
+.navrow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+details.opt{border:1px dashed var(--muted);border-radius:10px;background:var(--surface)}
+details.opt>summary{cursor:pointer;list-style:none;padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+details.opt>summary::-webkit-details-marker{display:none}
+details.opt>summary::after{content:"Open";margin-left:auto;font-size:.85rem;color:var(--accent);font-weight:600}
+details.opt[open]>summary::after{content:"Close"}
+details.opt .tag{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--muted);border-radius:4px;padding:1px 6px;color:var(--muted)}
+details.opt .ttl{font-weight:600}
+details.opt .body{padding:0 18px 18px;display:flex;flex-direction:column;gap:14px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--line);background:var(--soft);color:var(--ink);padding:7px 12px;border-radius:8px}
+.seg button[aria-pressed=true]{border-color:var(--accent);background:var(--surface);font-weight:600}
+pre.prompt{margin:0;font-family:var(--mono);font-size:.82rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:14px;max-height:300px;overflow:auto}
+ol.how{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;max-width:66ch}
+.status{font-size:.88rem;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.tile b{display:block;font-family:var(--display);font-size:1.6rem;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile span{font-size:.82rem;color:var(--muted)}
+ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;max-width:66ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:.82rem;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.marked{font-family:var(--mono);font-size:.84rem;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:14px;max-height:280px;overflow:auto}
+mark{color:inherit;border-radius:3px;padding:0 2px}
+mark.h{background:var(--mark)} mark.t{background:var(--mark2)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted)}
+.slider{display:flex;flex-direction:column;gap:6px}
+.slider .ends{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);gap:12px}
+.slider output{font-size:.92rem;color:var(--accent);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.reader{border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--soft)}
+.reader input[type=text]{background:var(--surface)}
+.grow{flex:1;min-width:180px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.two{grid-template-columns:1fr}}
+select{font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+.seg.big{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:620px){.seg.big{grid-template-columns:1fr}}
+.seg.big button{display:flex;flex-direction:column;gap:2px;text-align:left;padding:10px 12px}
+.seg.big button span{font-size:.8rem;color:var(--muted);font-weight:400}
+.seg.big button[aria-pressed=true]{border-width:2px}
+pre.prompt.out{max-height:none;font-size:.86rem}
+/* the index card */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 24px -14px rgba(10,20,50,.45);position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;right:0;top:44px;border-top:2px solid var(--redline)}
+.card .head{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-family:var(--display);font-style:italic}
+.card .head small{font-family:var(--mono);font-style:normal;font-size:.7rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.card.demo{transform:rotate(1.6deg)}
+.card.demo .lines{padding:8px 16px 14px;font-family:var(--mono);font-size:.8rem;line-height:26px;background:repeating-linear-gradient(transparent 0 25px,var(--rule) 25px 26px);background-position:0 8px}
+.card textarea{border:0;border-radius:0;background:repeating-linear-gradient(transparent 0 25px,var(--rule) 25px 26px);background-attachment:local;background-position:0 10px;font-family:var(--mono);font-size:.86rem;line-height:26px;min-height:520px;padding:10px 16px 16px;display:block}
+footer{font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:16px}
+footer a{color:var(--accent)}
+body.framed .standalone{display:none}
+body:not(.framed) .framed-only{display:none}
+#printcard{display:none}
+@media (prefers-reduced-motion:no-preference){.card.demo{transition:transform .3s}.card.demo:hover{transform:rotate(0)}}
+@media print{
+  body{background:#fff;color:#000}
+  .wrap>*:not(main),main>*:not(#printcard){display:none!important}
+  #printcard{display:block;font-family:var(--mono);font-size:10.5pt;line-height:1.5;white-space:pre-wrap}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Voice Card Builder</div>
+    <div class="pill">Private: nothing you type leaves this page</div>
+  </header>
+  <nav class="rail" id="rail" aria-label="Steps"></nav>
+  <main id="app"></main>
+  <footer>
+    <details class="opt" id="progress">
+      <summary><span class="ttl">Save or move my progress</span></summary>
+      <div class="body">
+        <p class="small">Your answers are kept in this browser when it allows that. To be safe, or to continue on another device, copy your progress and keep it somewhere private.</p>
+        <div class="row">
+          <button class="btn quiet sm" data-act="copy" data-copy="progress">Copy my progress</button>
+          <button class="btn quiet sm standalone" data-act="dlprogress">Download progress file</button>
+          <button class="btn quiet sm" data-act="reset" id="resetbtn">Start again</button>
+        </div>
+        <label class="f" for="restorebox">Paste saved progress here to continue
+          <textarea id="restorebox" spellcheck="false"></textarea></label>
+        <div class="row"><button class="btn quiet sm" data-act="restore">Restore</button><span class="status" id="restorestatus"></span></div>
+      </div>
+    </details>
+    <div>Made by <a href="https://colinyoung.es" target="_blank" rel="noopener">Colin Young</a>, communication trainer and coach. This page has no server, no accounts and no tracking, and makes no network requests.</div>
+  </footer>
+</div>
+<script>
+/* ============ logic (pure) ============ */
+const STEPS=['Start','Your writing','Still you?','Your choices','Your card'];
+const AUDIENCES=['Colleagues in my team','Managers','Customers','Suppliers and partners','International colleagues','People I have not met','My professional network','Friends and family'];
+const AIWRONG=['Too long','Too formal','Too enthusiastic','Too many adjectives','Sounds like marketing','Uses words I would never use','Too many bullet points','Too apologetic','Loses my humour','Hides the main point'];
+const LABELS={
+  formality:['Very informal, close to chat','Relaxed and friendly','Professional but relaxed','Professional and polite','Formal'],
+  directness:['My main point or request comes in the first sentence','The point comes early, with short context after it','A little context first, then the point','Context first, then the request','I build up carefully before I ask'],
+  warmth:['Strictly business, no small talk','Mostly business, a friendly word now and then','Friendly: one short personal line is normal','Warm: I show interest in the person','Very personal and warm']
+};
+const SHORT={formality:['very informal','relaxed','professional but relaxed','professional and polite','formal'],directness:['point first','point early','brief context, then the point','context first','careful build-up'],warmth:['strictly business','mostly business','friendly','warm','very personal']};
+const LENGTHS={short:'Short by default. A few lines if a few lines will do.',medium:'As long as the topic needs, in short paragraphs.',long:'Detailed. I prefer complete information over brevity.'};
+const LEVEL_SHORT={simple:'simple and clear, no idioms',natural:'natural professional',advanced:'full range'};
+const LEVELS={simple:'Simple and clear: short sentences, common words, no idioms.',natural:'Natural professional English, but nothing I could not say myself in a meeting.',advanced:'Full range: idiom and nuance are welcome.'};
+const HEDGES=['maybe','perhaps','i think','i guess','i feel like','just','a bit','a little','kind of','sort of','possibly','probably','might','i was wondering','would it be possible','if possible','if you have time','sorry to bother','no worries if not','could you'];
+const TEMPLATES=['i hope this email finds you well','i hope this message finds you well','i hope you are doing well',"i hope you're doing well",'i wanted to reach out','i am reaching out',"i'm reaching out",'please do not hesitate',"please don't hesitate",'at your earliest convenience','thank you for your understanding','delve','leverage','seamless','furthermore','moreover','in conclusion','rest assured','kindly','please be advised','looking forward to hearing from you','circle back','touch base','i trust this'];
+const STOP=new Set('a an the and or but if so to of in on at for with from by as is are was were be been am i you he she it we they me my your our their this that these those do does did have has had will would can could should not no yes there here what when where which who how than then them us its'.split(' '));
+const SCAN_LABELS=['GREETINGS','SIGN-OFFS','LENGTH','STRUCTURE','TONE','DIRECTNESS','SIGNATURE PHRASES','HABITS TO KEEP','HABITS TO WATCH','BY READER'];
+const BA_LABELS=['THEN','NOW','GAINED','LOST','SAME','QUESTIONS FOR ME'];
+const TWO_LABELS=['IN FIRST LANGUAGE','IN ENGLISH','CARRIES OVER','MISSING IN ENGLISH','QUESTIONS FOR ME'];
+
+function defaults(){return{step:0,name:'',audiences:[],audienceOther:'',native:'',firstLanguage:'',variant:'paste',
+  samples:['','','',''],scan:'',aiStart:'',reflA:{changed:'',keep:'',lost:''},baScan:'',
+  q:{formality:3,directness:2,warmth:3,length:'short',open:'',close:'',always:'',never:'',aiWrong:[],aiWrongOther:'',level:'natural'},
+  reflB:{first:'',english:'',want:''},twoScan:'',readers:[],out:'full',scopeReader:'-1',scopeNote:'',card:'',cardEdited:false,example:false};}
+function newReader(name,q){return{name:name||'',formality:q.formality,directness:q.directness,warmth:q.warmth,open:'',close:'',note:''};}
+function reEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function listRe(list){return new RegExp('\\b('+list.slice().sort((a,b)=>b.length-a.length).map(reEsc).join('|')+')\\b','gi');}
+const HEDGE_RE=listRe(HEDGES),TEMPLATE_RE=listRe(TEMPLATES);
+const GREET_RE=/^(hi|hello|hey|dear|good (?:morning|afternoon|evening|day)|morning|hallo|guten (?:tag|morgen)|hola|buenos d[ií]as|bonjour|ciao)\b(.*)$/i;
+const SIGN_RE=/^(best regards|kind regards|warm regards|regards|best wishes|all the best|best|many thanks|thanks a lot|thanks in advance|thanks|thank you|cheers|yours sincerely|sincerely|br|vg|lg|mfg|viele gr[uü](?:ß|ss)e|saludos|un saludo|have a (?:nice|great|good|lovely) [a-z]+|talk soon|speak soon|take care)[ ,!.]*$/i;
+function norm(t){return (t||'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/\r/g,'');}
+function uniq(arr){const m=new Map();arr.forEach(x=>{const k=x.toLowerCase();m.set(k,m.has(k)?[m.get(k)[0],m.get(k)[1]+1]:[x,1]);});return [...m.values()].sort((a,b)=>b[1]-a[1]).map(v=>v[0]);}
+function per100(n,words){return words?Math.round(n/words*1000)/10:0;}
+
+function analyse(samples){
+  const texts=(samples||[]).map(norm).map(s=>s.trim()).filter(Boolean);
+  const A={n:texts.length,words:0,sentences:0,avgLen:0,greetings:[],signoffs:[],contr:0,hedges:0,templates:[],exclam:0,questions:0,emoji:0,bullets:0,phrases:[],sentWords:0,iCount:0,weCount:0};
+  const grams=new Map();
+  texts.forEach(t=>{
+    const lines=t.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(lines.length){const g=lines[0].match(GREET_RE);if(g){const head=g[1],rest=g[2].split(/[,!.:]/)[0].trim();A.greetings.push(head.charAt(0).toUpperCase()+head.slice(1)+(rest?' [name]':''));}}
+    lines.slice(-4).forEach(l=>{const m=l.match(SIGN_RE);if(m)A.signoffs.push(m[1].charAt(0).toUpperCase()+m[1].slice(1));});
+    A.bullets+=lines.filter(l=>/^([-*•]|\d+[.)])\s+/.test(l)).length;
+    const words=t.toLowerCase().match(/[a-zà-ÿ']+/g)||[];
+    A.words+=words.length;
+    t.split(/[.!?]+\s+|\n+/).forEach(s=>{const n=(s.match(/[a-zA-Zà-ÿ']+/g)||[]).length;if(n>=4&&!SIGN_RE.test(s.trim())){A.sentences++;A.sentWords+=n;}});
+    A.contr+=(t.match(/\b[a-zA-Z]+'(?:s|t|re|ve|ll|d|m)\b/g)||[]).length;
+    A.hedges+=(t.match(HEDGE_RE)||[]).length;
+    (t.match(TEMPLATE_RE)||[]).forEach(x=>A.templates.push(x.toLowerCase()));
+    A.exclam+=(t.match(/!/g)||[]).length;
+    A.questions+=(t.match(/\?/g)||[]).length;
+    A.emoji+=(t.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu)||[]).length+(t.match(/[:;]-?[)(DP]/g)||[]).length;
+    A.iCount+=words.filter(w=>w==='i'||w.startsWith("i'")).length;
+    A.weCount+=words.filter(w=>w==='we'||w.startsWith("we'")).length;
+    lines.forEach(line=>{const w=line.toLowerCase().match(/[a-zà-ÿ']+/g)||[];for(let n=4;n>=2;n--)for(let i=0;i+n<=w.length;i++){const g=w.slice(i,i+n);if(g.filter(x=>!STOP.has(x)).length<2)continue;const k=g.join(' ');grams.set(k,(grams.get(k)||0)+1);}});
+  });
+  A.avgLen=A.sentences?Math.round(A.sentWords/A.sentences):0;
+  A.greetings=uniq(A.greetings);A.signoffs=uniq(A.signoffs);A.templates=uniq(A.templates);
+  const cand=[...grams.entries()].filter(e=>e[1]>=2).sort((a,b)=>(b[1]*b[0].split(' ').length)-(a[1]*a[0].split(' ').length));
+  const picked=[];cand.forEach(([k])=>{if(picked.length<6&&!picked.some(p=>p.includes(k)||k.includes(p)))picked.push(k);});
+  A.phrases=picked;
+  A.contrPer=per100(A.contr,A.words);A.hedgePer=per100(A.hedges,A.words);A.exclamPer=per100(A.exclam,A.words);
+  return A;
+}
+function measuredLines(A){
+  const L=[];if(A.words<60)return L;
+  L.push('My sentences average '+A.avgLen+' words'+(A.avgLen<=12?', so keep them short.':A.avgLen>=20?', so longer sentences are normal for me.':'.'));
+  if(A.contrPer>=1.5)L.push("I use contractions (I'm, don't, we'll).");else if(A.contrPer<0.4)L.push('I rarely use contractions.');
+  if(A.exclam===0)L.push('I do not use exclamation marks.');else if(A.exclamPer>1)L.push('I use exclamation marks freely.');else L.push('I use an exclamation mark only now and then.');
+  if(A.hedgePer>=2)L.push('I soften requests (maybe, just, could you).');else if(A.hedgePer<=0.3)L.push('I rarely soften or hedge.');
+  if(A.bullets>=3)L.push('I use bullet points for lists.');
+  if(A.emoji>0)L.push('I sometimes use emoji or smileys.');
+  if(A.weCount>A.iCount*1.5&&A.weCount>=3)L.push('I say "we" more than "I".');
+  return L;
+}
+function parseBlock(text,labels){
+  const out={},t=norm(text);if(!t.trim())return out;
+  const re=new RegExp('^[ \\t#*>\\-]*('+labels.map(reEsc).join('|')+')[ \\t*]*[:\\-][ \\t*]*','gim');
+  const hits=[];let m;while((m=re.exec(t))){hits.push({label:m[1].toUpperCase(),start:m.index,end:re.lastIndex});}
+  hits.forEach((h,i)=>{const body=t.slice(h.end,i+1<hits.length?hits[i+1].start:t.length).replace(/\*\*/g,'').replace(/\s*\n\s*/g,' ').trim();if(body&&!/^not enough evidence\.?$/i.test(body))out[h.label]=body;});
+  return out;
+}
+function clip(s,n){s=(s||'').trim().replace(/\s+/g,' ');return s.length>n?s.slice(0,n-1)+'…':s;}
+function buildCard(S){
+  const A=analyse(S.samples),scan=parseBlock(S.scan,SCAN_LABELS),ba=parseBlock(S.baScan,BA_LABELS),two=parseBlock(S.twoScan,TWO_LABELS),q=S.q,L=[];
+  const add=(...x)=>L.push(...x),bul=(k,v)=>{if(v&&String(v).trim())L.push('- '+k+clip(v,400));};
+  add('# Voice card'+(S.name.trim()?': '+S.name.trim():''),'','Follow this card whenever you draft or edit text for me. Write in my voice, not in a general assistant voice. If this card and a single request disagree, follow the request.','');
+  const aud=S.audiences.concat(S.audienceOther.trim()?[S.audienceOther.trim()]:[]);
+  if(aud.length||scan['BY READER']){add('## Who I write to');if(aud.length)add('- '+aud.join('; '));bul('How I adjust: ',scan['BY READER']);add('');}
+  add('## How I sound','- Formality: '+LABELS.formality[q.formality-1]+'.','- Getting to the point: '+LABELS.directness[q.directness-1]+'.','- Warmth: '+LABELS.warmth[q.warmth-1]+'.','- Length: '+LENGTHS[q.length]);
+  measuredLines(A).forEach(x=>add('- '+x));
+  bul('Structure: ',scan['STRUCTURE']);bul('Tone in my real messages: ',scan['TONE']);bul('How I ask and disagree: ',scan['DIRECTNESS']);add('');
+  const open=q.open.trim()||A.greetings.slice(0,3).join(' / ')||scan['GREETINGS']||'',close=q.close.trim()||A.signoffs.slice(0,3).join(' / ')||scan['SIGN-OFFS']||'';
+  if(open||close){add('## Openings and closings');bul('I open with: ',open);bul('I close with: ',close);add('');}
+  const rs=namedReaders(S);
+  if(rs.length){add('## How I shift by reader','Everything above is my default voice. Before you draft, work out who the reader is. If I have not told you, ask.','');rs.forEach(r=>{add('### '+r.name.trim());readerLines(r,q).forEach(x=>add(x));add('');});}
+  const mine=[q.always.trim(),scan['SIGNATURE PHRASES']].filter(Boolean).join('; ');
+  if(mine||q.never.trim()){add('## Words and phrases');bul('Phrases that are mine: ',mine);bul('Never use: ',q.never);add('');}
+  const wrong=q.aiWrong.concat(q.aiWrongOther.trim()?[q.aiWrongOther.trim()]:[]);
+  if(wrong.length){add('## What AI drafts usually get wrong for me','- Avoid: '+wrong.map(w=>w.charAt(0).toLowerCase()+w.slice(1)).join('; ')+'.','');}
+  const r=S.reflA;
+  if(r.changed.trim()||r.keep.trim()||r.lost.trim()||ba.GAINED||ba.LOST){add('## Since I started writing with AI');bul('What changed: ',r.changed);bul('Keep this: ',r.keep||ba.GAINED);bul('Bring this back: ',r.lost||ba.LOST);add('- Protect the "bring this back" points in every draft, even when a smoother version is possible.','');}
+  if(S.native==='no'){const b=S.reflB,lang=S.firstLanguage.trim()||'my first language';
+    add('## My English voice (my choice)');bul('In '+lang+' I come across as: ',b.first||two['IN FIRST LANGUAGE']);bul('In English today I come across as: ',b.english||two['IN ENGLISH']);bul('In English I want to come across as: ',b.want);
+    add('- Level: '+LEVELS[q.level],'- Do not translate my '+lang+' style word for word, and do not make my English more advanced than this card says.','');}
+  if(scan['HABITS TO KEEP']||scan['HABITS TO WATCH']){add('## Seen in my real messages');bul('Keep: ',scan['HABITS TO KEEP']);bul('Watch: ',scan['HABITS TO WATCH']);add('');}
+  else if(S.scan.trim()&&!Object.keys(scan).length){add('## Notes from a scan of my real messages',clip(S.scan,1200),'');}
+  add('## How to work with me','- Keep my meaning. Do not add facts, promises or enthusiasm I did not give you.','- If you are unsure about the reader or the tone, ask me one question before you draft.');
+  return L.join('\n');
+}
+function readerLines(r,q){const L=[];
+  if(r.formality!==q.formality)L.push('- Formality: '+LABELS.formality[r.formality-1]+'.');
+  if(r.directness!==q.directness)L.push('- Getting to the point: '+LABELS.directness[r.directness-1]+'.');
+  if(r.warmth!==q.warmth)L.push('- Warmth: '+LABELS.warmth[r.warmth-1]+'.');
+  if(r.open.trim())L.push('- I open with: '+clip(r.open,120));
+  if(r.close.trim())L.push('- I close with: '+clip(r.close,120));
+  if(r.note.trim())L.push('- Remember: '+clip(r.note,300));
+  if(!L.length)L.push('- Same as my default voice.');
+  return L;}
+function namedReaders(S){return (S.readers||[]).filter(r=>r.name.trim());}
+function readerShort(r,q){const d=[];
+  if(r.formality!==q.formality)d.push(SHORT.formality[r.formality-1]);
+  if(r.directness!==q.directness)d.push(SHORT.directness[r.directness-1]);
+  if(r.warmth!==q.warmth)d.push(SHORT.warmth[r.warmth-1]);
+  if(r.open.trim())d.push('open "'+clip(r.open,40)+'"');
+  if(r.close.trim())d.push('close "'+clip(r.close,40)+'"');
+  if(r.note.trim())d.push(clip(r.note,90));
+  return r.name.trim()+': '+(d.length?d.join(', '):'default voice');}
+function facts(S){const A=analyse(S.samples),scan=parseBlock(S.scan,SCAN_LABELS),ba=parseBlock(S.baScan,BA_LABELS),q=S.q;
+  return{A,scan,q,open:q.open.trim()||A.greetings.slice(0,2).join(' / ')||'',close:q.close.trim()||A.signoffs.slice(0,2).join(' / ')||'',
+    wrong:q.aiWrong.concat(q.aiWrongOther.trim()?[q.aiWrongOther.trim()]:[]).map(w=>w.charAt(0).toLowerCase()+w.slice(1)),
+    keep:S.reflA.keep.trim()||ba.GAINED||'',lost:S.reflA.lost.trim()||ba.LOST||''};}
+function buildShort(S){const f=facts(S),q=f.q,L=['When you draft or edit text for me, write in my voice:'];
+  L.push('- Default tone: '+SHORT.formality[q.formality-1]+'; '+SHORT.warmth[q.warmth-1]+'; '+SHORT.directness[q.directness-1]+'.');
+  L.push('- Length: '+(q.length==='short'?'short by default':q.length==='medium'?'as long as needed, short paragraphs':'detailed')+(f.A.words>=60?'; sentences of about '+f.A.avgLen+' words':'')+'.');
+  if(f.open||f.close)L.push('- '+[f.open?'Open: '+clip(f.open,60):'',f.close?'Close: '+clip(f.close,60):''].filter(Boolean).join('. ')+'.');
+  if(q.always.trim())L.push('- My phrases: '+clip(q.always,120));
+  if(q.never.trim())L.push('- Never use: '+clip(q.never,120));
+  if(f.wrong.length)L.push('- Avoid: '+clip(f.wrong.join('; '),160)+'.');
+  if(f.lost)L.push('- Protect: '+clip(f.lost,140));
+  if(S.native==='no'){L.push('- English: '+LEVEL_SHORT[q.level]+(S.reflB.want.trim()?'. I want to come across as: '+clip(S.reflB.want,120):'.'));}
+  const rs=namedReaders(S);
+  if(rs.length){L.push('- Shift by reader. '+rs.map(r=>readerShort(r,q)).join(' | '));L.push('- If the reader is unclear, ask me who it is before you draft.');}
+  L.push('- Keep my meaning. Add no facts, promises or enthusiasm I did not give.');
+  return L.join('\n');}
+function buildScope(S){const f=facts(S),q=f.q,rs=namedReaders(S),r=rs[+S.scopeReader]||null,L=[];
+  const v=r||q,title=(S.scopeNote.trim()||(r?r.name.trim():'')||'this workspace');
+  L.push('# Voice card for: '+clip(title,80),'','Use this card for everything you draft or edit for me in this project, agent or workspace.'+(r?' The reader here is: '+r.name.trim()+'.':''),'');
+  L.push('## How I sound here','- Formality: '+LABELS.formality[v.formality-1]+'.','- Getting to the point: '+LABELS.directness[v.directness-1]+'.','- Warmth: '+LABELS.warmth[v.warmth-1]+'.','- Length: '+LENGTHS[q.length]);
+  measuredLines(f.A).slice(0,3).forEach(x=>L.push('- '+x));
+  const open=(r&&r.open.trim())||f.open,close=(r&&r.close.trim())||f.close;
+  if(open)L.push('- I open with: '+clip(open,120));if(close)L.push('- I close with: '+clip(close,120));
+  if(r&&r.note.trim())L.push('- Remember with this reader: '+clip(r.note,300));
+  if(q.always.trim())L.push('- Phrases that are mine: '+clip(q.always,200));
+  if(q.never.trim())L.push('- Never use: '+clip(q.never,200));
+  if(f.wrong.length)L.push('- Avoid: '+f.wrong.join('; ')+'.');
+  if(f.lost)L.push('- Protect this in every draft: '+clip(f.lost,300));
+  if(S.native==='no'){L.push('- English level: '+LEVELS[q.level]);if(S.reflB.want.trim())L.push('- In English I want to come across as: '+clip(S.reflB.want,300));}
+  L.push('','## How to work with me','- Keep my meaning. Do not add facts, promises or enthusiasm I did not give you.','- If a message here is for a different reader, tell me and ask how to adjust.');
+  return L.join('\n');}
+/* ---- prompts ---- */
+const RULES='Look only at text I wrote myself. Ignore quoted replies, forwarded text, signatures, automatic replies and meeting invitations.\n\nPrivacy rules: report patterns, not content. Do not include names of people, companies, products or projects. Do not include numbers, dates or confidential details. If you quote me, use five words at most and only everyday phrases.';
+const CANT='If you cannot access my sent mail, say so in one line and stop. I will paste messages instead.';
+function src(variant,kind,S){
+  const lang=(S.firstLanguage||'').trim()||'[my first language]',date=(S.aiStart||'').trim()||'[month and year]';
+  if(kind==='scan'){
+    if(variant==='copilot')return 'Use my Outlook Sent Items from the last three months. Choose about 30 messages that I wrote in English, to a mix of readers. '+CANT;
+    if(variant==='gmail')return 'Use your Gmail connection to search my sent mail (for example: in:sent newer_than:3m). Read about 30 messages that I wrote in English, to a mix of readers. '+CANT;
+    return 'I will paste 5 to 10 emails or messages that I wrote, below this prompt. Use only those.';
+  }
+  if(kind==='ba'){
+    if(variant==='copilot')return 'Use my Outlook Sent Items. Compare about 15 messages I sent before '+date+' with about 15 from the last two months. Choose similar kinds of message in both groups. '+CANT;
+    if(variant==='gmail')return 'Use your Gmail connection to search my sent mail. Compare about 15 messages I sent before '+date+' with about 15 from the last two months. Choose similar kinds of message in both groups. '+CANT;
+    return 'Below this prompt I will paste two groups of messages that I wrote: OLDER (before '+date+') and RECENT (the last two months), three to five in each group.';
+  }
+  if(variant==='copilot')return 'Use my Outlook Sent Items from the last six months. Compare about 15 messages I wrote in '+lang+' with about 15 I wrote in English. '+CANT;
+  if(variant==='gmail')return 'Use your Gmail connection to search my sent mail from the last six months. Compare about 15 messages I wrote in '+lang+' with about 15 I wrote in English. '+CANT;
+  return 'Below this prompt I will paste two groups of messages that I wrote: three to five in '+lang+' and three to five in English.';
+}
+const PASTE_TAIL={scan:'\n\nMY MESSAGES:\n[paste here, with names and confidential details removed]',ba:'\n\nOLDER:\n[paste here]\n\nRECENT:\n[paste here]',two:'\n\nFIRST LANGUAGE:\n[paste here]\n\nENGLISH:\n[paste here]'};
+function promptText(kind,S){
+  const v=S.variant,lang=(S.firstLanguage||'').trim()||'[my first language]',date=(S.aiStart||'').trim()||'[month and year]',tail=v==='paste'?PASTE_TAIL[kind]:'';
+  const fmt='Reply in English, in exactly this format. Keep the headings in capitals. Write one or two short lines after each heading. Write "not enough evidence" where you cannot tell.';
+  if(kind==='scan')return 'You are helping me describe my own writing voice, so that I can create a personal voice card.\n\n'+src(v,'scan',S)+'\n\n'+RULES+'\n\n'+fmt+'\n\nVOICE FINDINGS\nGREETINGS: how I usually open, and how this changes with the reader\nSIGN-OFFS: how I usually close\nLENGTH: typical message length and sentence length\nSTRUCTURE: how I order a message (request first or context first; paragraphs or bullets)\nTONE: how formal, how warm, how I show politeness\nDIRECTNESS: how I ask for things, disagree and say no\nSIGNATURE PHRASES: up to eight short everyday phrases I use often\nHABITS TO KEEP: two or three things that make my writing clear or recognisably mine\nHABITS TO WATCH: two or three things that may confuse or slow down a reader\nBY READER: how my style shifts between colleagues, managers and external contacts'+tail;
+  if(kind==='ba')return 'I want to understand how my writing has changed since I started using AI tools to help me write. I started around '+date+'.\n\n'+src(v,'ba',S)+'\n\n'+RULES+'\n\nDo not judge which version is better. Describe the difference so that I can decide for myself.\n\n'+fmt+'\n\nBEFORE AND AFTER\nTHEN: how I wrote before\nNOW: how I write now\nGAINED: what is clearer, faster or more correct now\nLOST: what was more personal, more direct or more like me before\nSAME: what did not change\nQUESTIONS FOR ME: three questions that help me decide what to keep and what to bring back'+tail;
+  return 'I write at work in '+lang+' (my first language) and in English. I want to compare how I communicate in each, so that I can choose how I want to sound in English. My English voice does not have to copy my '+lang+' voice.\n\n'+src(v,'two',S)+'\n\n'+RULES+'\n\nDo not correct my English and do not rate my level. Describe style only.\n\n'+fmt+'\n\nTWO LANGUAGES\nIN FIRST LANGUAGE: how I come across in '+lang+'\nIN ENGLISH: how I come across in English\nCARRIES OVER: habits from '+lang+' that appear in my English, and how an international reader may read them\nMISSING IN ENGLISH: things I do well in '+lang+' that I do not yet do in English (humour, warmth, precision, directness)\nQUESTIONS FOR ME: three questions that help me choose my English voice'+tail;
+}
+const TEST_PROMPT='Write a short email to a colleague. I need to move tomorrow\'s meeting to Thursday, and I have to tell them the report will be two days late.';
+function wrapCard(card,target){
+  if(target==='copilot')return 'Below is my personal voice card. From now on, when you draft or rewrite emails and messages for me, follow it. First confirm by describing my voice in two sentences. Then wait for my request.\n\n'+card;
+  if(target==='chat')return 'Below is my personal voice card. Follow it for the rest of this conversation whenever you draft or edit text for me. (I may also save it in my custom instructions or project.) First confirm by describing my voice in two sentences. Then wait for my request.\n\n'+card;
+  return card;
+}
+function refinePrompt(card){return 'Here is my voice card, and below it a message I wrote myself. Compare them. Tell me where the card does not match how I write, and suggest up to five exact edits to the card. Do not rewrite my message.\n\nVOICE CARD:\n'+card+'\n\nMY MESSAGE:\n[paste one real message here]';}
+const EXAMPLE=["Hi Marta,\n\nJust a quick one about Thursday. Could you send me the updated delivery plan before the call? I think we still have the old dates for Line 3, and I'd like to check them first.\n\nIf it's easier, we can go through it together at 9. No worries if not.\n\nThanks,\nJonas","Hello Mr Dupont,\n\nThank you for your message. I checked with our warehouse this morning. The pallets left on Monday and should arrive on Wednesday.\n\nI'm sorry for the delay. We had a problem with the labels, and it is fixed now. Could you let me know when the goods arrive? Then I can close the case on our side.\n\nBest regards,\nJonas Keller","Hi all,\n\nShort update from my side:\n- Line 3 is running again since 10:00\n- We lost about four hours\n- I'd like to check the plan for next week with you on Thursday\n\nMaybe we can use the first ten minutes of the call for this? Let me know if that works.\n\nThanks,\nJonas"];
+
+/* ============ UI ============ */
+if(typeof document!=='undefined'){(function(){
+const KEY='voice-card-builder-v1',app=document.getElementById('app'),rail=document.getElementById('rail');
+let S=defaults();
+function merge(d,s){for(const k in d){if(s&&k in s){if(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))merge(d[k],s[k]);else if(Array.isArray(d[k])){if(Array.isArray(s[k]))d[k]=s[k];}else if(typeof s[k]===typeof d[k])d[k]=s[k];}}return d;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function get(p){return p.split('.').reduce((o,k)=>o==null?o:o[k],S);}
+function set(p,v){const ks=p.split('.'),last=ks.pop();ks.reduce((o,k)=>o[k],S)[last]=v;}
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ta=(k,ph,cls,extra)=>'<textarea id="f-'+k.replace(/\./g,'-')+'" data-k="'+k+'" class="'+(cls||'')+'" placeholder="'+esc(ph||'')+'" '+(extra||'')+'>'+esc(get(k))+'</textarea>';
+const tx=(k,ph,extra)=>'<input type="text" id="f-'+k.replace(/\./g,'-')+'" data-k="'+k+'" value="'+esc(get(k))+'" placeholder="'+esc(ph||'')+'" '+(extra||'')+'>';
+const checks=(k,opts)=>'<div class="checks">'+opts.map((o,i)=>'<label><input type="checkbox" id="c-'+k.replace(/\./g,'-')+'-'+i+'" data-k="'+k+'" value="'+esc(o)+'"'+(get(k).includes(o)?' checked':'')+'>'+esc(o)+'</label>').join('')+'</div>';
+const radios=(k,opts,rer)=>'<div class="checks">'+opts.map((o,i)=>'<label><input type="radio" name="r-'+k+'" id="r-'+k.replace(/\./g,'-')+'-'+i+'" data-k="'+k+'" value="'+o[0]+'"'+(get(k)===o[0]?' checked':'')+(rer?' data-rerender="1"':'')+'>'+esc(o[1])+'</label>').join('')+'</div>';
+const slider=(k,title,lo,hi)=>{const key=k.split('.').pop(),id='f-'+k.replace(/\./g,'-');return '<div class="slider"><label class="f" for="'+id+'">'+title+'</label><input type="range" min="1" max="5" step="1" id="'+id+'" data-k="'+k+'" value="'+get(k)+'"><div class="ends"><span>'+lo+'</span><span>'+hi+'</span></div><output id="'+id+'-out">'+LABELS[key][get(k)-1]+'</output></div>';};
+const nav=(back,next)=>'<div class="navrow">'+(back?'<button class="btn ghost" data-act="back">Back</button>':'<span></span>')+(next?'<button class="btn" data-act="next">'+next+'</button>':'')+'</div>';
+const variantSeg=()=>'<div class="stack"><h3>Which assistant will you use?</h3><div class="seg">'+[['paste','Any assistant: I paste messages myself'],['copilot','Copilot at work (Outlook)'],['gmail','ChatGPT or Claude with Gmail connected']].map(v=>'<button type="button" data-act="variant" data-v="'+v[0]+'" aria-pressed="'+(S.variant===v[0])+'">'+v[1]+'</button>').join('')+'</div><p class="small muted">Use only an assistant your organisation allows for work email. Your mail stays inside that assistant. Only its summary comes back here, and this page sends it nowhere.</p></div>';
+const promptBox=(kind,pasteKey,labels)=>'<pre class="prompt" data-prompt="'+kind+'" tabindex="0"></pre><div class="row"><button class="btn sm" data-act="copy" data-copy="p-'+kind+'">Copy prompt</button></div><ol class="how small"><li>Copy the prompt and run it in your assistant.</li><li>Read the answer. Correct anything that is wrong about you.</li><li>Paste the answer below.</li></ol><label class="f" for="f-'+pasteKey+'">Paste the assistant\'s answer here'+ta(pasteKey,'Starts with the headings in capitals','tall','data-parse="'+labels+'" spellcheck="false"')+'</label><p class="status" data-status="'+pasteKey+'"></p>';
+
+function step0(){return '<section class="hero"><div class="stack"><h1>Teach your AI assistant to write <em>like you</em>.</h1><p class="lede">Build a one-page voice card in about 15 minutes. Paste it into Copilot, ChatGPT, Claude or Gemini, and your drafts start to sound like you again.</p><p class="promise">Everything stays in this browser. The page has no server and sends nothing anywhere, so you can use real work messages.</p></div>'
+ +'<div class="card demo" aria-hidden="true"><div class="head"><span>Voice card: Jonas</span><small>sample</small></div><div class="lines">Point first, context after.<br>Short sentences. About 11 words.<br>Opens: Hi [name],<br>Closes: Thanks,<br>Never: "I hope this finds you well"<br>Bring back: my dry humour</div></div></section>'
+ +'<section class="panel"><h2>First, a little about you</h2>'
+ +'<label class="f" for="f-name">Your first name <small>Optional. It goes on the card.</small>'+tx('name','')+'</label>'
+ +'<div class="stack"><h3>Who do you write to most?</h3>'+checks('audiences',AUDIENCES)+tx('audienceOther','Someone else? Add them here','aria-label="Other readers"')+'</div>'
+ +'<div class="stack"><h3>Is English your first language?</h3>'+radios('native',[['yes','Yes'],['no','No']],true)+'</div>'
+ +(S.native==='no'?'<label class="f" for="f-firstLanguage">What is your first language?'+tx('firstLanguage','For example: German','data-refresh="1"')+'</label>':'')
+ +'</section>'+nav(false,'Next: your writing');}
+
+function step1(){const n=S.samples[3]?4:3;let boxes='';for(let i=0;i<4;i++)boxes+='<label class="f" for="f-samples-'+i+'">Message '+(i+1)+(i>1?' <small>Optional</small>':'')+ta('samples.'+i,i===0?'Paste an email or chat message you wrote':'','tall')+'</label>';
+ return '<section class="stack"><h2>Show the page how you write</h2><p class="lede">Paste two to four messages you wrote yourself. Choose ones without AI help if you can, to different readers.</p></section>'
+ +'<section class="panel"><p class="small muted">Remove names and anything confidential if you prefer. It makes no difference to the result.</p>'+(S.example?'<p class="status">Example text is loaded. Replace it with your own messages.</p>':'')+boxes
+ +'<div class="row"><button class="btn quiet sm" data-act="example">'+(S.example?'Clear the example':'Try it with example text')+'</button></div></section>'
+ +'<details class="opt"><summary><span class="tag">Optional</span><span class="ttl">Deep scan: let your own assistant read your sent mail</span><span class="small muted">10 minutes. Gives more concrete guidelines.</span></summary><div class="body"><p>Four pasted messages show a little. An assistant that can see your sent mail can describe patterns across many messages: how you open, how you ask, how you change with the reader.</p>'+variantSeg()+promptBox('scan','scan','scan')+'</div></details>'
+ +nav(true,'Next: is this still you?');}
+
+function markUp(t){return esc(norm(t)).replace(TEMPLATE_RE,'<mark class="t">$1</mark>').replace(HEDGE_RE,m=>/^<|mark/.test(m)?m:'<mark class="h">'+m+'</mark>');}
+function step2(){const A=analyse(S.samples),scan=parseBlock(S.scan,SCAN_LABELS);let out='';
+ if(A.words>=20){const tile=(v,l)=>'<div class="tile"><b>'+v+'</b><span>'+l+'</span></div>';
+  out+='<section class="panel"><h3>What the page sees in your '+A.n+' message'+(A.n===1?'':'s')+'</h3><div class="tiles">'+tile(A.words,'words read')+tile(A.avgLen,'words per sentence')+tile(A.contrPer,'contractions per 100 words')+tile(A.hedgePer,'softeners per 100 words')+tile(A.exclam,'exclamation marks')+tile(A.questions,'questions asked')+'</div>'
+  +(A.words<60?'<p class="status">This is a small sample. Add more text for patterns you can trust.</p>':'')
+  +(A.greetings.length?'<div class="stack"><h3>How you open</h3><div class="chips">'+A.greetings.map(g=>'<span class="chip">'+esc(g)+'</span>').join('')+'</div></div>':'')
+  +(A.signoffs.length?'<div class="stack"><h3>How you close</h3><div class="chips">'+A.signoffs.map(g=>'<span class="chip">'+esc(g)+'</span>').join('')+'</div></div>':'')
+  +(A.phrases.length?'<div class="stack"><h3>Phrases you repeat</h3><div class="chips">'+A.phrases.map(g=>'<span class="chip">'+esc(g)+'</span>').join('')+'</div></div>':'')
+  +(measuredLines(A).length?'<div class="stack"><h3>In plain words</h3><ul class="plain">'+measuredLines(A).map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul></div>':'')
+  +'<div class="stack"><h3>Your text, marked</h3><div class="legend"><span><mark class="h">softeners</mark> such as maybe, just, could you</span><span><mark class="t">stock phrases</mark> that often come from templates or AI drafts</span></div><div class="marked" tabindex="0">'+S.samples.filter(s=>s.trim()).map(markUp).join('\n\n· · ·\n\n')+'</div>'
+  +(A.templates.length?'<p class="small">You used '+A.templates.length+' stock phrase'+(A.templates.length===1?'':'s')+'. Are they yours, or did they arrive with a template or an AI draft?</p>':'')+'</div></section>';
+ }else out+='<section class="panel"><p>No messages to read yet. You can go back and paste some, or carry on: the reflection below and the questions in the next step are enough to build a card.</p></section>';
+ const keys=Object.keys(scan);
+ if(keys.length)out+='<section class="panel"><h3>What your assistant saw in your sent mail</h3><ul class="plain">'+keys.map(k=>'<li><b>'+esc(k.charAt(0)+k.slice(1).toLowerCase())+':</b> '+esc(scan[k])+'</li>').join('')+'</ul></section>';
+ out+='<details class="opt"'+(S.reflA.changed||S.reflA.keep||S.reflA.lost?' open':'')+'><summary><span class="tag">Optional</span><span class="ttl">Reflection: your writing before and after AI</span><span class="small muted">5 minutes. Decides what your card protects.</span></summary><div class="body">'
+  +'<p>You have just seen your patterns. Some are yours. Some may have arrived since you started drafting with AI. A voice card works best when you choose which is which.</p>'
+  +'<label class="f" for="f-aiStart">Roughly when did you start using AI to help you write?'+tx('aiStart','For example: spring 2024','data-refresh="1"')+'</label>'
+  +'<label class="f" for="f-reflA-changed">How has your writing changed since then? <small>Length, tone, vocabulary, speed, confidence.</small>'+ta('reflA.changed','')+'</label>'
+  +'<label class="f" for="f-reflA-keep">Which changes do you want to keep?'+ta('reflA.keep','')+'</label>'
+  +'<label class="f" for="f-reflA-lost">What has been lost that you would like back? <small>A habit, a kind of humour, a directness, a warmth.</small>'+ta('reflA.lost','')+'</label>'
+  +'<h3>Want evidence? Ask your assistant to compare</h3><p class="small muted">It compares what you sent before that date with what you send now. Set the date above first.</p>'+variantSeg()+promptBox('ba','baScan','ba')+'</div></details>';
+ return '<section class="stack"><h2>Is this still you?</h2><p class="lede">Here is what your writing shows. Read it the way you would read a stranger\'s.</p></section>'+out+nav(true,'Next: your choices');}
+
+function step3(){const A=analyse(S.samples),scan=parseBlock(S.scan,SCAN_LABELS),lang=S.firstLanguage.trim()||'your first language';let b='';
+ if(S.native==='no')b='<details class="opt"'+(S.reflB.first||S.reflB.english||S.reflB.want?' open':'')+'><summary><span class="tag">Optional</span><span class="ttl">Reflection: you in '+esc(lang)+', you in English</span><span class="small muted">5 minutes. Do it before the sliders below.</span></summary><div class="body">'
+  +'<p>Your English voice does not have to be a translation of your '+esc(lang)+' voice. Many people choose to be more direct, simpler or warmer in English than at home. Others want their humour or precision to cross over. The choice is yours.</p>'
+  +'<label class="f" for="f-reflB-first">How do you come across when you write in '+esc(lang)+'?'+ta('reflB.first','')+'</label>'
+  +'<label class="f" for="f-reflB-english">How do you come across in English today? <small>What is different? What gets lost or added?</small>'+ta('reflB.english','')+'</label>'
+  +'<label class="f" for="f-reflB-want">How do you want to come across in English? <small>What do you bring from '+esc(lang)+', what do you leave behind, what is new?</small>'+ta('reflB.want','')+'</label>'
+  +'<h3>Want evidence? Ask your assistant to compare</h3>'+variantSeg()+promptBox('two','twoScan','two')+'</div></details>';
+ const dOpen=A.greetings.slice(0,3).join(' / ')||scan['GREETINGS']||'For example: Hi [name],',dClose=A.signoffs.slice(0,3).join(' / ')||scan['SIGN-OFFS']||'For example: Thanks,';
+ return '<section class="stack"><h2>Now choose how you want to sound</h2><p class="lede">Eight short questions. Answer for the voice you want, which may differ from the one you saw in the last step.</p></section>'+b
+ +'<section class="panel">'+slider('q.formality','1. How formal are you?','Very informal','Formal')+slider('q.directness','2. How fast do you get to the point?','At once','After a build-up')+slider('q.warmth','3. How personal are you?','Strictly business','Very warm')
+ +'<div class="stack"><h3>4. How long are your messages?</h3>'+radios('q.length',[['short','Short by default'],['medium','As long as needed'],['long','Detailed']])+'</div>'
+ +'<label class="f" for="f-q-open">5. How do you open a message? <small>Leave empty to use what the page found.</small>'+tx('q.open',dOpen)+'</label>'
+ +'<label class="f" for="f-q-close">6. How do you close?'+tx('q.close',dClose)+'</label>'
+ +'<label class="f" for="f-q-always">7. Words and phrases that are yours'+tx('q.always','For example: quick one, short update, let me know')+'</label>'
+ +'<label class="f" for="f-q-never">Words and phrases you never use'+tx('q.never','For example: I hope this finds you well, kindly, synergy')+'</label>'
+ +'<div class="stack"><h3>8. What do AI drafts usually get wrong for you?</h3>'+checks('q.aiWrong',AIWRONG)+tx('q.aiWrongOther','Something else?','aria-label="Other things AI gets wrong"')+'</div>'
+ +(S.native==='no'?'<div class="stack"><h3>What level of English should drafts use?</h3>'+radios('q.level',[['simple','Simple and clear'],['natural','Natural professional'],['advanced','Full range']])+'</div>':'')
+ +'</section>'
+ +'<section class="panel"><h2>Your voice changes with the reader</h2><p>The answers above are your default voice. Nobody writes the same way to a customer, a manager and a friend. Add the readers where you sound different, and say how. Your card will tell the assistant to check who the reader is first.</p>'
+ +S.readers.map((r,i)=>'<div class="reader"><div class="row"><label class="f grow" for="f-readers-'+i+'-name">Reader'+tx('readers.'+i+'.name','For example: customers')+'</label><button class="btn quiet sm" data-act="delreader" data-i="'+i+'" aria-label="Remove this reader">Remove</button></div>'
+   +slider('readers.'+i+'.formality','Formality with this reader','Very informal','Formal')+slider('readers.'+i+'.directness','Getting to the point','At once','After a build-up')+slider('readers.'+i+'.warmth','Warmth','Strictly business','Very warm')
+   +'<div class="two"><label class="f" for="f-readers-'+i+'-open">Opening, if different'+tx('readers.'+i+'.open','')+'</label><label class="f" for="f-readers-'+i+'-close">Closing, if different'+tx('readers.'+i+'.close','')+'</label></div>'
+   +'<label class="f" for="f-readers-'+i+'-note">What matters with this reader? <small>For example: always give a date; humour is fine; never push.</small>'+tx('readers.'+i+'.note','')+'</label></div>').join('')
+ +(S.readers.length<6?'<div class="stack"><h3>Add a reader</h3><div class="row">'+S.audiences.concat(['Senior management','Friends and family']).filter((n,i,a)=>a.indexOf(n)===i&&!S.readers.some(r=>r.name.trim().toLowerCase()===n.toLowerCase())).slice(0,6).map(n=>'<button class="btn quiet sm" data-act="addreader" data-name="'+esc(n)+'">+ '+esc(n)+'</button>').join('')+'<button class="btn quiet sm" data-act="addreader" data-name="">+ Another reader</button></div></div>':'')
+ +'</section>'+nav(true,'Build my card');}
+
+function step4(){if(!S.cardEdited||!S.card.trim()){S.card=buildCard(S);S.cardEdited=false;save();}
+ const rs=namedReaders(S),tabs=[['full','Full card','Detailed. A file or a first message.'],['short','Short instructions','For custom instruction settings.'],['scope','One reader or project','For a single project, agent or workspace.']];
+ let view='';
+ if(S.out==='full')view='<p class="small muted">Use it for: uploading as a file, adding to the knowledge of a project or agent, or pasting at the start of a chat. It holds everything, including how you shift between readers.</p>'
+  +'<div class="card"><div class="head"><span>Voice card'+(S.name.trim()?': '+esc(S.name.trim()):'')+'</span><small>editable</small></div><textarea id="f-card" data-k="card" spellcheck="false" aria-label="Your voice card">'+esc(S.card)+'</textarea></div>'
+  +'<div class="row"><button class="btn" data-act="copy" data-copy="card-copilot">Copy for Copilot</button><button class="btn" data-act="copy" data-copy="card-chat">Copy for ChatGPT or Claude</button><button class="btn ghost" data-act="copy" data-copy="card">Copy card only</button><button class="btn quiet standalone" data-act="dl" data-copy="card" data-file="voice-card.md">Download .md</button><button class="btn quiet standalone" data-act="print">Print</button><button class="btn quiet" data-act="rebuild">Rebuild from my answers</button></div>';
+ else if(S.out==='short'){const t=buildShort(S);view='<p class="small muted">Use it for: the custom instructions or personalisation box of your assistant, which applies to every chat. These boxes are small, so this version keeps only the rules that change a draft.</p>'
+  +'<pre class="prompt out" tabindex="0">'+esc(t)+'</pre><p class="status">'+t.length+' characters. Many instruction boxes accept about 1,500.'+(t.length>1500?' This one is longer: shorten your answers or remove a reader.':'')+'</p>'
+  +'<div class="row"><button class="btn" data-act="copy" data-copy="short">Copy short instructions</button><button class="btn quiet standalone" data-act="dl" data-copy="short" data-file="voice-instructions.txt">Download</button></div>';}
+ else view='<p class="small muted">Use it for: one project, one agent or one shared workspace where you always write for the same kind of reader. A sales project and a team chat should not share one voice.</p>'
+  +'<div class="two"><label class="f" for="f-scopeReader">Who is the reader here?<select id="f-scopeReader" data-k="scopeReader" data-rerender="1"><option value="-1">My default voice</option>'+rs.map((r,i)=>'<option value="'+i+'"'+(String(i)===S.scopeReader?' selected':'')+'>'+esc(r.name.trim())+'</option>').join('')+'</select></label>'
+  +'<label class="f" for="f-scopeNote">What is this project or agent for?'+tx('scopeNote','For example: supplier follow-up emails','data-rerender-blur="1"')+'</label></div>'
+  +(rs.length?'':'<p class="status">You have not added any readers yet. Go back one step to add them, and you can make one card per reader.</p>')
+  +'<pre class="prompt out" tabindex="0" id="scopeout">'+esc(buildScope(S))+'</pre>'
+  +'<div class="row"><button class="btn" data-act="copy" data-copy="scope">Copy this card</button><button class="btn quiet standalone" data-act="dl" data-copy="scope" data-file="voice-card-scope.md">Download .md</button></div>';
+ return '<section class="stack"><h2>Your voice card</h2><p class="lede">One voice, three formats. Pick the one that fits where you will use it. You can take all three.</p></section>'
+ +'<div class="seg big" role="group" aria-label="Output format">'+tabs.map(t=>'<button type="button" data-act="out" data-v="'+t[0]+'" aria-pressed="'+(S.out===t[0])+'"><b>'+t[1]+'</b><span>'+t[2]+'</span></button>').join('')+'</div>'
+ +view
+ +'<p class="small muted framed-only">To print or download, copy the text into a document, or open the standalone version of this tool.</p>'
+ +(S.out!=='full'&&S.cardEdited?'<p class="status">This version is built from your answers. Edits you typed into the full card are not included.</p>':'')
+ +'<section class="panel"><h3>Test it: with and without</h3><ol class="how"><li>Open a new chat in your assistant and run the test prompt.</li><li>Open another new chat. Paste your card first, then run the same prompt.</li><li>Compare. Which one could you send without edits? What is still wrong?</li><li>Come back and fix the card. Two or three rounds make it good.</li></ol><pre class="prompt" tabindex="0">'+esc(TEST_PROMPT)+'</pre><div class="row"><button class="btn sm" data-act="copy" data-copy="test">Copy test prompt</button></div></section>'
+ +'<details class="opt"><summary><span class="tag">Optional</span><span class="ttl">Ask your assistant to check the card against a real message</span></summary><div class="body"><p>This prompt includes your full card. Add one real message of yours at the end, and the assistant suggests exact edits.</p><div class="row"><button class="btn sm" data-act="copy" data-copy="refine">Copy check prompt</button></div></div></details>'
+ +'<pre id="printcard"></pre>'+nav(true,false);}
+
+const VIEWS=[step0,step1,step2,step3,step4];
+function refreshPrompts(){app.querySelectorAll('[data-prompt]').forEach(p=>p.textContent=promptText(p.dataset.prompt,S));app.querySelectorAll('[data-act=variant]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===S.variant)));}
+function updateParse(el){const labels={scan:SCAN_LABELS,ba:BA_LABELS,two:TWO_LABELS}[el.dataset.parse],st=app.querySelector('[data-status="'+el.dataset.k+'"]');if(!st)return;const v=el.value.trim();if(!v){st.textContent='';return;}const n=Object.keys(parseBlock(v,labels)).length;st.textContent=n?'Found '+n+' of '+labels.length+' headings. They will go into your card.':'No headings found yet. Check that the answer uses the headings from the prompt.'+(el.dataset.parse==='scan'?' Your text will still be added to the card as a note.':'');}
+function render(keep){const y=window.scrollY;rail.innerHTML=STEPS.map((s,i)=>'<button type="button" data-act="goto" data-step="'+i+'" class="'+(i===S.step?'on':i<S.step?'done':'')+'"'+(i===S.step?' aria-current="step"':'')+'><b>'+(i+1)+'</b><span>'+s+'</span></button>').join('');
+ app.innerHTML=VIEWS[S.step]();refreshPrompts();app.querySelectorAll('[data-parse]').forEach(updateParse);if(keep)window.scrollTo(0,y);else window.scrollTo(0,0);}
+function go(n){S.step=Math.max(0,Math.min(4,n));save();render();}
+function textFor(id){const card=S.card||buildCard(S);return{'p-scan':promptText('scan',S),'p-ba':promptText('ba',S),'p-two':promptText('two',S),card:card,'card-copilot':wrapCard(card,'copilot'),'card-chat':wrapCard(card,'chat'),short:buildShort(S),scope:buildScope(S),test:TEST_PROMPT,refine:refinePrompt(card),progress:JSON.stringify(S)}[id]||'';}
+function flash(btn,msg){const old=btn.dataset.label||btn.textContent;btn.dataset.label=old;btn.textContent=msg;setTimeout(()=>{btn.textContent=old;},1600);}
+function copy(text,btn){const fallback=()=>{try{const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();flash(btn,ok?'Copied':'Select and copy by hand');}catch(e){flash(btn,'Select and copy by hand');}};
+ try{navigator.clipboard.writeText(text).then(()=>flash(btn,'Copied'),fallback);}catch(e){fallback();}}
+function download(name,text){try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=name;document.body.appendChild(a);a.click();a.remove();}catch(e){}}
+
+app.addEventListener('input',e=>{const el=e.target,k=el.dataset.k;if(!k)return;
+ if(el.type==='checkbox'){const arr=get(k).slice(),i=arr.indexOf(el.value);if(el.checked&&i<0)arr.push(el.value);if(!el.checked&&i>=0)arr.splice(i,1);set(k,arr);}
+ else if(el.type==='range'){set(k,+el.value);const o=document.getElementById(el.id+'-out');if(o)o.textContent=LABELS[k.split('.').pop()][el.value-1];}
+ else set(k,el.value);
+ if(k==='card')S.cardEdited=true;if(k.startsWith('samples'))S.example=false;
+ if(k==='scopeNote'){const so=document.getElementById('scopeout');if(so)so.textContent=buildScope(S);}
+ if(el.dataset.parse)updateParse(el);if(el.dataset.refresh)refreshPrompts();save();if(el.dataset.rerender)render(true);});
+let resetArmed=false;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+ if(a==='next')go(S.step+1);else if(a==='back')go(S.step-1);else if(a==='goto')go(+b.dataset.step);
+ else if(a==='variant'){S.variant=b.dataset.v;save();refreshPrompts();}
+ else if(a==='copy')copy(textFor(b.dataset.copy),b);
+ else if(a==='example'){if(S.example){S.samples=['','','',''];S.example=false;}else{S.samples=EXAMPLE.concat(['']);S.example=true;}save();render(true);}
+ else if(a==='rebuild'){S.card=buildCard(S);S.cardEdited=false;save();render(true);}
+ else if(a==='dl')download(b.dataset.file,textFor(b.dataset.copy));
+ else if(a==='out'){S.out=b.dataset.v;save();render(true);}
+ else if(a==='addreader'){S.readers.push(newReader(b.dataset.name,S.q));save();render(true);}
+ else if(a==='delreader'){S.readers.splice(+b.dataset.i,1);save();render(true);}
+ else if(a==='dlprogress')download('voice-card-progress.json',JSON.stringify(S));
+ else if(a==='print'){document.getElementById('printcard').textContent=S.card;try{window.print();}catch(err){}}
+ else if(a==='restore'){const st=document.getElementById('restorestatus');try{const d=JSON.parse(document.getElementById('restorebox').value);S=merge(defaults(),d);save();render();st.textContent='Restored.';}catch(err){st.textContent='That text is not saved progress. Paste the whole text you copied.';}}
+ else if(a==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Click again to delete everything';setTimeout(()=>{resetArmed=false;b.textContent='Start again';},4000);}else{resetArmed=false;S=defaults();save();b.textContent='Start again';render();}}
+});
+let framed=false;try{framed=window.self!==window.top;}catch(e){framed=true;}
+if(framed)document.body.classList.add('framed');
+function start(data){S=defaults();let stored=null;try{stored=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+ if(data&&data.S)merge(S,data.S);else if(stored)merge(S,stored);render();}
+const hot=window.claude&&window.claude.hot;
+if(hot&&hot.snapshot)hot.snapshot(()=>({S:S}));
+if(hot&&hot.ready)hot.ready(start);else start(hot&&hot.data||{});
+})();}
+if(typeof module!=='undefined')module.exports={buildShort,buildScope,newReader,analyse,parseBlock,buildCard,promptText,defaults,measuredLines,EXAMPLE,SCAN_LABELS,BA_LABELS,TWO_LABELS,wrapCard};
+</script>
+</body>
+</html>
